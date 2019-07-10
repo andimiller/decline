@@ -68,6 +68,7 @@ object Help {
     case Opts.Missing => None
     case Opts.HelpFlag(a) => optionList(a)
     case Opts.App(f, a) => (optionList(f), optionList(a)).mapN { _ ++ _ }
+    case Opts.Select(fab, fn) => (optionList(fab), optionList(fn)).mapN { _ ++ _ }
     case Opts.OrElse(a, b) => optionList(a) |+| optionList(b)
     case Opts.Single(opt) => Some(List(opt -> false))
     case Opts.Repeated(opt) => Some(List(opt -> true))
@@ -90,6 +91,7 @@ object Help {
     case Opts.Missing => List()
     case Opts.HelpFlag(a) => environmentVarHelpLines(a)
     case Opts.App(f, a) => environmentVarHelpLines(f) |+| environmentVarHelpLines(a)
+    case Opts.Select(fab, fn) => environmentVarHelpLines(fab) |+| environmentVarHelpLines(fn)
     case Opts.OrElse(a, b) => environmentVarHelpLines(a) |+| environmentVarHelpLines(b)
     case Opts.Single(opt) => List()
     case Opts.Repeated(opt) => List()

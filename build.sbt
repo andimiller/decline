@@ -4,7 +4,7 @@ import sbtcrossproject.{crossProject, CrossType}
 enablePlugins(ScalaJSPlugin)
 
 val defaultSettings = Seq(
-  scalaVersion := "2.11.12",
+  scalaVersion := "2.12.8",
   crossScalaVersions := List("2.11.12", "2.12.8", "2.13.0-M5"),
   resolvers += Resolver.sonatypeRepo("releases"),
   homepage := Some(url("http://monovore.com/decline")),
@@ -78,10 +78,12 @@ lazy val decline =
     .settings(
       name := "decline",
       description := "Composable command-line parsing for Scala",
+      resolvers += "jitpack" at "https://jitpack.io",
       libraryDependencies ++= {
         val catsVersion = "1.6.0"
 
         Seq(
+          "com.github.cb372.cats-selective" %% "core" % "0063c60655",
           "org.typelevel"  %%% "cats-core"    % catsVersion,
           "org.typelevel"  %%% "cats-laws"    % catsVersion % "test",
           "org.typelevel"  %%% "cats-testkit" % catsVersion % "test",

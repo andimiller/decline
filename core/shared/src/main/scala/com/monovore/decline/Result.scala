@@ -3,7 +3,7 @@ package com.monovore.decline
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
-import cats.{Alternative, Applicative, Semigroup}
+import cats.{Alternative, Applicative, Selective, Semigroup}
 
 private[decline] case class Result[+A](get: Validated[Result.Failure, () => Validated[List[String], A]]) {
 
@@ -103,5 +103,11 @@ private[decline] object Result {
 
       override def empty[A]: Result[A] = fail
     }
+
+  implicit val selective: Selective[Result] = new Selective[Result] {
+    override def applicative: Applicative[Result] = alternative
+    override def select[A, B](fab: Result[Either[A, B]])(fn: Result[A => B]): Result[B] =
+      (fab, fn).mapN { case (e, f) => e.fold(f, identity) }
+  }
 }
 

@@ -1,6 +1,6 @@
 package com.monovore.decline
 
-import cats.{Alternative, Monoid}
+import cats.{Alternative, Applicative, Monoid, Selective}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 
 /** A top-level argument parser, with all the info necessary to parse a full
@@ -83,6 +83,7 @@ object Opts {
   private[decline] case class Pure[A](a: A) extends Opts[A]
   private[decline] case object Missing extends Opts[Nothing]
   private[decline] case class App[A, B](f: Opts[A => B], a: Opts[A]) extends Opts[B]
+  private[decline] case class Select[A, B](fab: Opts[Either[A, B]], f: Opts[A => B]) extends Opts[B]
   private[decline] case class OrElse[A](a: Opts[A], b: Opts[A]) extends Opts[A]
   private[decline] case class Single[A](opt: Opt[A]) extends Opts[A]
   private[decline] case class Repeated[A](opt: Opt[A]) extends Opts[NonEmptyList[A]]
@@ -97,6 +98,12 @@ object Opts {
       override def ap[A, B](ff: Opts[A => B])(fa: Opts[A]): Opts[B] = Opts.App(ff, fa)
       override def empty[A]: Opts[A] = Opts.never
       override def combineK[A](x: Opts[A], y: Opts[A]): Opts[A] = Opts.OrElse(x, y)
+    }
+
+  implicit val selective: Selective[Opts] =
+    new Selective[Opts] {
+      override def applicative: Applicative[Opts] = alternative
+      override def select[A, B](fab: Opts[Either[A, B]])(fn: Opts[A => B]): Opts[B] = Opts.Select(fab, fn)
     }
 
   implicit def monoid[A]: Monoid[Opts[A]] = alternative.algebra[A]
@@ -165,6 +172,8 @@ object Opts {
   def subcommand[A](name: String, help: String, helpFlag: Boolean = true)(opts: Opts[A]): Opts[A] = {
     Subcommand(Command(name, help, helpFlag)(opts))
   }
+
+  def selective[A, B](fab: Opts[Either[A, B]])(fn: Opts[A => B]): Opts[B] = Select(fab, fn)
 
   def env[A: Argument](name: String, help: String, metavar: String = ""): Opts[A] =
     Env(name, help, metavarFor[A](metavar)).mapValidated(Argument[A].read)

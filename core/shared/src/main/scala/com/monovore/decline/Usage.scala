@@ -142,6 +142,11 @@ private[decline] object Usage {
         l <- fromOpts(left)
         r <- fromOpts(right)
       } yield Usage(l.opts.asProd and r.opts.asProd, l.args.asProd and r.args.asProd)
+    case Opts.Select(left, right) =>
+      for {
+        l <- fromOpts(left)
+        r <- fromOpts(right)
+      } yield Usage(l.opts.asProd and r.opts.asProd, l.args.asProd and r.args.asProd)
     case Opts.OrElse(left, right) =>
       (fromOpts(left).reverse, fromOpts(right)) match {
         case (Usage(leftOpts, Prod()) :: ls, Usage(rightOpts, Prod()) :: rs) =>
